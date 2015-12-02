@@ -1,7 +1,17 @@
+$(function(){
+
+var location = function (location) {
+	
+	url: "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyDa4r24A_xrdeDQE3Yr4s5xLOpIc1HLSHM"
+}
+
 //find stops w/in 1 mile radius
 var findStop = function(location) {
 
         var params = {
+
+        	var lat = //get from googlemaps
+			var lon = //get from googlemaps
             // Request parameters
             "Lat": "{number}",
             "Lon": "{number}",
@@ -27,9 +37,8 @@ var findStop = function(location) {
         });
     
 /*
-	var lat = //get from googlemaps
-	var lon = //get from googlemaps
-	var radius = 3200;
+	
+	
 
 	var BuildUrl = function (tag) {
 		return "https://api.wmata.com/Bus.svc/json/jStops" + lat + lon + radius
@@ -54,9 +63,13 @@ $('.submit').on('click', '.choice', function (event) {
 })
 
 //.results populates with time until next bus
-
+var times = function ()
+	$('.results')
 
 //.videos populates with clips of given length and -1 minute
 
 
 //.more repopulates .videos with new batch of videos
+
+
+}
