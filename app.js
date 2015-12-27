@@ -1,5 +1,7 @@
 $(function(){
 
+var request = superagent;
+
 /*var location = function (location) {
 	
 	url: "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyDa4r24A_xrdeDQE3Yr4s5xLOpIc1HLSHM"
@@ -59,53 +61,69 @@ $(function(){
 
 
 //submit button chooses stop
-$('.submit').on('click', '.choice', function (event) {
+$('.submit').on('click', function (event) {
 
-	console.log('.choice');
-	//function that uses selected stop to populate .results
+	var picker = $('#stopPicker');
+	console.log(picker.val());
+
 })
 
-//.results populates with time until next bus
-var times = function (event){
-	var params = {
-            // Request parameters
-            "StopID": "NUMBER HERE",
-        };
-      
-        $.ajax({
-            url: "https://api.wmata.com/NextBusService.svc/json/jPredictions&" + params,
-            beforeSend: function(xhrObj){
-                // Request headers
-                xhrObj.setRequestHeader("api_key","c8b70f91a8cc4a6ab33dfa8844ca9f07");
-            },
-            type: "GET",
-            // Request body
-            data: "{body}",
-        });
-        .done(function(data) {
-            alert("success");
-        });
-        .fail(function() {
-            alert("error");
-        });
+//function that spits out a stop based on array selection (line 81)
+var getStops = function getStops () {
+	request
+		.get('https://api.wmata.com/Bus.svc/json/jStops')
+		.set({api_key: 'c8b70f91a8cc4a6ab33dfa8844ca9f07'})
+		.end(function(err, res) {
+			if (err || !res.ok) {
+				console.log(err || res)
+			}
+			else {
+				var stop = res.body.Stops[2]
+				console.log(stop)
+				getTimes(stop.StopID)
+			}
+		});
 };
 
+getStops();
+
+//uses StopID to report bus arrival predictions
+var getTimes = function (stopID){
+	
+	request
+		.get('https://api.wmata.com/NextBusService.svc/json/jPredictions')
+		.query({StopID: stopID})
+		.set({api_key: 'c8b70f91a8cc4a6ab33dfa8844ca9f07'})
+		.end(function (err, res) {
+			if (err || !res.ok) {
+				console.log(err || res)
+			}
+			else {
+				console.log(res.body)
+			}
+		})
+
+};
+
+//.results populates with time until next bus
 //.videos populates with clips of given length and -1 minute
 var searchTerm = $("#search-term").val();
-		getRequest(searchTerm);
+		getVideos(searchTerm);
 
-function getRequest (time) {
-	var params = {
-		q: searchTerm,
-		part: 'snippet',
-		key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"		
-	};
+function getVideos (searchTerm) {
+	
 	url = 'https://www.googleapis.com/youtube/v3/search';
+	request.
+		get(url).
+		query({
+			q: searchTerm,
+			part: 'snippet',
+			key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"
+		}).
+		end(function(err, res){
+			console.log(res.body)
+		})
 
-	$.getJSON(url, params, function(data){
-		console.log(data);
-    	showResults(data.items);
-    });
 }
 
 function showResults(results){
@@ -126,4 +144,4 @@ function showResults(results){
 //.more repopulates .videos with new batch of videos
 
 
-};
+});
