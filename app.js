@@ -61,10 +61,12 @@ var request = superagent;
 
 
 //submit button chooses stop
-$('.submit').on('click', function (event) {
-
+$('#stop-dropdown-form').on('submit', function (event) {
+	event.preventDefault();
 	var picker = $('#stopPicker');
 	console.log(picker.val());
+	var stopID = picker.val();
+	getTimes(stopID);
 
 })
 
@@ -78,14 +80,33 @@ var getStops = function getStops () {
 				console.log(err || res)
 			}
 			else {
-				var stop = res.body.Stops[2]
-				console.log(stop)
-				getTimes(stop.StopID)
+				generateStopForm(res.body.Stops)
+				
 			}
 		});
 };
 
 getStops();
+
+//function creates dropdown of all metro stops
+
+var generateStopForm = function generateStopForm (stops) {
+	var stopOptions = stops.map(function(stop){
+		return '<option value= "' + stop.StopID +'">' + stop.Name + '</option>'
+	});
+
+
+
+	var form = '<select id= "stopPicker" name="stops">' + 
+		'<option value="select">Select your station:</option>' + 
+		stopOptions.join('') +
+	'</select>' +
+	'<button type="submit" class="submit">Submit</button>'
+
+	console.log(form)
+
+	$("#stop-dropdown-form").html(form)
+}
 
 //uses StopID to report bus arrival predictions
 var getTimes = function (stopID){

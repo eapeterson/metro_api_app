@@ -20,7 +20,7 @@ p {
 
 }
 
-.headline, .choice, .bored, .results, .videos, .more {
+.headline, #stop-dropdown-form, .bored, .results, .videos, .more {
 	text-align: center;
 	padding: 20px;
 
