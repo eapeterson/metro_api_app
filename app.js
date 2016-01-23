@@ -2,6 +2,14 @@ $(function(){
 
 var request = superagent;
 
+var waitTime;
+
+var yTDuration;
+
+var nextPageToken;
+
+var foundVideos = [];
+
 /*var location = function (location) {
 	
 	url: "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyDa4r24A_xrdeDQE3Yr4s5xLOpIc1HLSHM"
@@ -56,10 +64,6 @@ var request = superagent;
 };*/
 
 
-
-//populate dropdown with nearby stops
-
-
 //submit button chooses stop
 $('#stop-dropdown-form').on('submit', function (event) {
 	event.preventDefault();
@@ -103,8 +107,6 @@ var generateStopForm = function generateStopForm (stops) {
 	'</select>' +
 	'<button type="submit" class="submit">Submit</button>'
 
-	console.log(form)
-
 	$("#stop-dropdown-form").html(form)
 }
 
@@ -120,49 +122,162 @@ var getTimes = function (stopID){
 				console.log(err || res)
 			}
 			else {
-				console.log(res.body)
+				console.log(res.body);
+				timeResults(res.body.Predictions);
+				
 			}
 		})
 
 };
 
 //.results populates with time until next bus
-//.videos populates with clips of given length and -1 minute
-var searchTerm = $("#search-term").val();
-		getVideos(searchTerm);
+var timeResults = function (predictions) {
+	var dirMin = predictions.map(function(bus){
+		console.log(bus.DirectionText);
+		console.log(bus.Minutes);
+		return '<option value= "' + bus.Minutes +'">'+ bus.DirectionText + " (" + bus.Minutes + " minutes)" +'</option>'
+		
+	})
 
-function getVideos (searchTerm) {
-	
+	var nextBusesForm = '<select id= "nextBusPicker">' + 
+		'<option value="select">Select your bus:</option>' + 
+		dirMin.join('') +
+	'</select>' +
+	'<button type="submit" class="submit">Submit</button>'
+
+	$('.results').html(nextBusesForm);
+
+}
+
+
+//submit button chooses bus
+$('#bus-choice-form').on('submit', function (event) {
+	event.preventDefault();
+	var picker = $('#nextBusPicker');
+	console.log(picker.val());
+	var busMinutes = parseInt (picker.val(), 10);
+	waitTime = busMinutes;
+	foundVideos = [];
+	//NAME OF FUNCTION THAT FINDS VIDS HERE(busMinutes);
+ 	
+ 	if (busMinutes < 4) {
+ 		yTDuration = "short"
+ 	}
+ 	else if (busMinutes <= 20) {
+ 		yTDuration = "medium"
+ 	}
+ 	else {
+ 		yTDuration = "long"
+ 	}
+ 	getVideos(searchTerm, yTDuration);
+})
+
+var searchTerm = $("#search-term").val();
+
+//finds videos based on general time length (short, medium, long)
+function getVideos (searchTerm, vidDuration, pageToken) {
+	if (!pageToken) {pageToken = ""}
+	if (!vidDuration) {vidDuration = "medium"}
 	url = 'https://www.googleapis.com/youtube/v3/search';
 	request.
 		get(url).
 		query({
 			q: searchTerm,
 			part: 'snippet',
+			type: "video",
+			maxResults: 20,
+			videoDuration: vidDuration,
+			pageToken: pageToken,
 			key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"
 		}).
 		end(function(err, res){
 			console.log(res.body)
+			var list = "";
+			var arr = [];
+			nextPageToken = res.body.nextPageToken;
+			$.each(res.body.items, function(idx, obj){
+				arr.push(obj.id.videoId);
+			})
+			list = arr.join(",");
+			betterDetails(list);
 		})
 
 }
 
-function showResults(results){
+//takes array of vids found in getVideos and finds their real length in minutes
+function betterDetails (idList) {
+	url = 'https://www.googleapis.com/youtube/v3/videos';
+	request.
+		get(url).
+		query({
+			part: 'contentDetails',
+			id: idList,
+			key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"
+		}).
+		end(function(err, res){
+			
+			var data = res.body;
+			$.each(data.items, function(idx, obj){
+				var d = obj.contentDetails.duration
+				data.items[idx].minutes = parseInt(d.substring(2,(d.indexOf("M"))), 10)
+			})
+			console.log(data);
+			var filtered = filterVids (data.items, waitTime);
+			console.log(filtered);
+			if (filtered !== 0) {
+				foundVideos = foundVideos.concat(filtered);
+				if (foundVideos.length >= 6){
+					showResults();
+					console.log(foundVideos);
+				}
+				else{getVideos("", yTDuration, nextPageToken);}
+			}
+			else {getVideos("", yTDuration, nextPageToken);}
+		})
 
+}
+
+function filterVids (videos, minutes) {
+	var maxMinutes = minutes + 2;
+	var minMinutes = minutes - 2;
+	var arr = $.grep(videos, function(video, idx){
+		console.log(minMinutes, maxMinutes, video.minutes);
+		console.log((video.minutes <= maxMinutes && video.minutes >= minMinutes));
+		return (video.minutes <= maxMinutes && video.minutes >= minMinutes)
+	});
+	return arr;	
+}
+
+
+function showResults (){
+
+	//NOT WORKING 
+	var url0 = "https://i.ytimg.com/vi/"
+	var url1 = 	"/default.jpg"	
 	var html = "";
-	$.each(results, function(index,item){
-		var thumb = item.snippet.thumbnails.medium.url
-		html += '<p>' + thumb +'</p>';
+	$.each(foundVideos, function(index,item){
+		var thumb = url0 + item.id + url1
+		
+		html += '<img src="' + thumb + '" data-vid="' + item.id + '" />';
 		console.log(thumb);
 
 	});
 
 	
 	$(".videos").html(html);
-	console.log(html);
+
 }
 
-//.more repopulates .videos with new batch of videos
+$(".videos").on("click", function (event){
+	var el = $(event.target)
+	var vid = el.attr("data-vid")
+	var url0 = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'
+	var url1 =  '" frameborder="0" allowfullscreen></iframe>'
+	var html = url0 + vid + url1;
+	$(".player").html(html);
+})
 
+//.more repopulates .videos with new batch of videos
+foundVideos.slice([0[, 5]])
 
 });
