@@ -2,66 +2,13 @@ $(function(){
 
 var request = superagent;
 
-var waitTime;
+var waitTime = 8;
 
-var yTDuration;
+var yTDuration = "medium";
 
 var nextPageToken;
 
 var foundVideos = [];
-
-/*var location = function (location) {
-	
-	url: "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyDa4r24A_xrdeDQE3Yr4s5xLOpIc1HLSHM"
-}*/
-
-//find stops w/in 1 mile radius
-/*var findStop = function(location) {
-
-        var params = {
-
-        	//var lat = //get from googlemaps
-			//var lon = //get from googlemaps
-            // Request parameters
-            "Lat": "38.897357",
-            "Lon": "-77.112496",
-            "Radius": "3200",
-        };
-
-        var stops = //Stops from WMATA list
-      
-        $.ajax({
-            url: "https://api.wmata.com/Bus.svc/json/jStops&" + $.param(params),
-           //WHAT IS THIS?
-            beforeSend: function(xhrObj){
-                // Request headers
-                xhrObj.setRequestHeader("api_key","c8b70f91a8cc4a6ab33dfa8844ca9f07");
-            },
-            type: "GET",
-            // Request body---?
-            data: stops,
-        })
-        .done(function(data) {
-            alert("success");
-        })
-        .fail(function() {
-            alert("error");
-        });
-    
-	
-	
-
-	var BuildUrl = function (tag) {
-		return "https://api.wmata.com/Bus.svc/json/jStops" + lat + lon + radius
-	};
-
-	var stop =  $.ajax({
-		url: BuildUrl(tag),
-		data: request,
-		dataType: "json",
-		type: "GET",
-		})
-};*/
 
 
 //submit button chooses stop
@@ -172,6 +119,8 @@ $('#bus-choice-form').on('submit', function (event) {
  	getVideos(searchTerm, yTDuration);
 })
 
+getVideos(searchTerm, yTDuration);
+
 var searchTerm = $("#search-term").val();
 
 //finds videos based on general time length (short, medium, long)
@@ -224,15 +173,13 @@ function betterDetails (idList) {
 			console.log(data);
 			var filtered = filterVids (data.items, waitTime);
 			console.log(filtered);
-			if (filtered !== 0) {
-				foundVideos = foundVideos.concat(filtered);
-				if (foundVideos.length >= 6){
-					showResults();
-					console.log(foundVideos);
-				}
-				else{getVideos("", yTDuration, nextPageToken);}
+			foundVideos = foundVideos.concat(filtered);
+			if (foundVideos.length >= 6){
+				showResults();
+				console.log(foundVideos);
 			}
-			else {getVideos("", yTDuration, nextPageToken);}
+			else{getVideos("", yTDuration, nextPageToken);}
+			
 		})
 
 }
@@ -251,11 +198,10 @@ function filterVids (videos, minutes) {
 
 function showResults (){
 
-	//NOT WORKING 
 	var url0 = "https://i.ytimg.com/vi/"
 	var url1 = 	"/default.jpg"	
 	var html = "";
-	$.each(foundVideos, function(index,item){
+	$.each(foundVideos.slice(0,6), function(index,item){
 		var thumb = url0 + item.id + url1
 		
 		html += '<img src="' + thumb + '" data-vid="' + item.id + '" />';
@@ -278,6 +224,15 @@ $(".videos").on("click", function (event){
 })
 
 //.more repopulates .videos with new batch of videos
-foundVideos.slice([0[, 5]])
+$(".more").on("click", function(event) {
+
+	foundVideos = foundVideos.slice(6);
+	if (foundVideos.length >= 6) {
+		showResults();
+	} 
+	else {
+		getVideos("", yTDuration, nextPageToken);
+	}
+})
 
 });
