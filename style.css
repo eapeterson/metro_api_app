@@ -3,14 +3,16 @@ body {
 	background-color: lightblue;
 }
 
+
+
 h1 {
-	font-family: 'PT Sans Caption', sans-serif;
+	font-family: 'Montserrat', sans-serif;
 	font-weight: 700;
 }
 
 h2, p {
 	text-align: center;
-	font-family: 'PT Sans Caption', sans-serif;
+	font-family: 'Montserrat', sans-serif;
 	font-weight: 400;
 
 }
@@ -20,7 +22,7 @@ p {
 
 }
 
-.headline, .choice, .bored, .results, .videos, .more {
+.headline, #stop-dropdown-form, .bored, .results, .videos, .more {
 	text-align: center;
 	padding: 20px;
 
@@ -31,30 +33,51 @@ div.choice select {
 	padding: 2px;
 }
 
-.more {
+.submit, .more, .videos img {
 	cursor: pointer;
 }
 
 .submit {
-	
-	box-shadow: 0px 10px 14px -7px #276873;
-	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #599bb3), color-stop(1, #408c99));
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#599bb3', endColorstr='#408c99',GradientType=0);
-	background-color:#599bb3;
-	border-radius:8px;
-	display:inline-block;
-	cursor:pointer;
-	color:black;
-	font-family:'PT Sans Caption', sans-serif;
-	font-size:18px;
-	font-weight:bold;
-	padding:9px 25px;
-	text-decoration: none;
-	text-shadow:0px 1px 0px #3d768a;
+	border-top: 1px solid #636257;
+   background: #177d8f;
+   background: -webkit-gradient(linear, left top, left bottom, from(#4320b3), to(#177d8f));
+   background: -webkit-linear-gradient(top, #4320b3, #177d8f);
+   background: -moz-linear-gradient(top, #4320b3, #177d8f);
+   background: -ms-linear-gradient(top, #4320b3, #177d8f);
+   background: -o-linear-gradient(top, #4320b3, #177d8f);
+   padding: 10px 20px;
+   -webkit-border-radius: 23px;
+   -moz-border-radius: 23px;
+   border-radius: 23px;
+   -webkit-box-shadow: rgba(0,0,0,1) 0 1px 0;
+   -moz-box-shadow: rgba(0,0,0,1) 0 1px 0;
+   box-shadow: rgba(0,0,0,1) 0 1px 0;
+   text-shadow: rgba(0,0,0,.4) 0 1px 0;
+   color: #fffcff;
+   font-size: 16px;
+   font-family: 'Montserrat', sans-serif;
+   text-decoration: none;
+   vertical-align: middle;
+   margin-left: 20px;
 }
-.submit:hover {
-	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #408c99), color-stop(1, #599bb3));
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#408c99', endColorstr='#599bb3',GradientType=0);
-	background-color:#408c99;
+.button:hover {
+   border-top-color: #130f52;
+   background: #130f52;
+   color: #ccc;
+}
+.button:active {
+   border-top-color: #91d6a1;
+   background: #91d6a1;
 }
 
+
+.videos img {
+	margin-right: 20px;
+}
+
+.player iframe {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 80px;
+}
