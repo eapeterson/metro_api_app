@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>WMATA Wait</title>
 	<link rel="stylesheet" href="style.css">
+	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
 	<link href='https://fonts.googleapis.com/css?family=PT+Sans+Caption:700,400' rel='stylesheet' type='text/css'>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/1.2.0/superagent.js"></script>
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
@@ -13,38 +14,26 @@
 <body>
 	<div class="headline">
 		<p>
-			<h1><img src="images/metro_logo.png"> Waiting for the Metro? <img src="images/metro_logo.png"></h1> 
+			<h1><img src="images/metro_logo.png"> Waiting for the MetroBus? <img src="images/metro_logo.png"></h1>
+			<h2>Let us help entertain you!</h2>
+			<h2>Check out the videos below, or select your station to get customized videos.</h2> 
 		</p>
 	</div>
 	<br>
-	<div class="choice">
-		<select id= "stopPicker" name="stops">
-
-			<option value="select">Select your station:</option>
-			<option value="patriot">Patriot and Americana Drs.(Annandale)</option>
-			<option value="turnpike">Annandale Rd. and Little River Turnpike</option>
-			<option value="hickory">Annandale and Hickory Hill Rds.</option>
-			<option value="hillwood">Annandale Rd. and Hillwood Ave.</option>
-			<option value="eastfc">East Falls Church</option>
-			<option value="glebe">Lee Hwy and Glebe Rd.</option>
-			<option value="kirkwood">Lee Highway and Kirkwood Rd.</option>
-			<option value="rosslyn">Rosslyn</option>
-			
-		</select>
-
-		<a href="#" class="submit">Submit</a>
-	</div>
+	<form id="stop-dropdown-form" class="choice">
+	</form>
 	<br>
-	<div class="results"></div>
+	<form id="bus-choice-form" class="results"></form>
 	<br>
 	<div class="bored">
-		<h1>Bored?</h1>
-		<h2>These videos are just about the right length!</h2>
+		<h2>These videos are just about the right length.</h2>
+		<h2>Pick one to escape boredom!</h2>
 	</div>
 	<br>
-	<div class="videos">
-		VIDEOS POPULATE HERE
+	<div class="videos">	
 	</div>
+	<div class="player">
+	</div> 
 	<br>
 	<div class="more">
 		<p>Need more options? >></p>
