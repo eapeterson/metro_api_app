@@ -2,69 +2,22 @@ $(function(){
 
 var request = superagent;
 
-/*var location = function (location) {
-	
-	url: "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyDa4r24A_xrdeDQE3Yr4s5xLOpIc1HLSHM"
-}*/
+var waitTime = 8;
 
-//find stops w/in 1 mile radius
-/*var findStop = function(location) {
+var yTDuration = "medium";
 
-        var params = {
+var nextPageToken;
 
-        	//var lat = //get from googlemaps
-			//var lon = //get from googlemaps
-            // Request parameters
-            "Lat": "38.897357",
-            "Lon": "-77.112496",
-            "Radius": "3200",
-        };
-
-        var stops = //Stops from WMATA list
-      
-        $.ajax({
-            url: "https://api.wmata.com/Bus.svc/json/jStops&" + $.param(params),
-           //WHAT IS THIS?
-            beforeSend: function(xhrObj){
-                // Request headers
-                xhrObj.setRequestHeader("api_key","c8b70f91a8cc4a6ab33dfa8844ca9f07");
-            },
-            type: "GET",
-            // Request body---?
-            data: stops,
-        })
-        .done(function(data) {
-            alert("success");
-        })
-        .fail(function() {
-            alert("error");
-        });
-    
-	
-	
-
-	var BuildUrl = function (tag) {
-		return "https://api.wmata.com/Bus.svc/json/jStops" + lat + lon + radius
-	};
-
-	var stop =  $.ajax({
-		url: BuildUrl(tag),
-		data: request,
-		dataType: "json",
-		type: "GET",
-		})
-};*/
-
-
-
-//populate dropdown with nearby stops
+var foundVideos = [];
 
 
 //submit button chooses stop
-$('.submit').on('click', function (event) {
-
+$('#stop-dropdown-form').on('submit', function (event) {
+	event.preventDefault();
 	var picker = $('#stopPicker');
 	console.log(picker.val());
+	var stopID = picker.val();
+	getTimes(stopID);
 
 })
 
@@ -78,14 +31,31 @@ var getStops = function getStops () {
 				console.log(err || res)
 			}
 			else {
-				var stop = res.body.Stops[2]
-				console.log(stop)
-				getTimes(stop.StopID)
+				generateStopForm(res.body.Stops)
+				
 			}
 		});
 };
 
 getStops();
+
+//function creates dropdown of all metro stops
+
+var generateStopForm = function generateStopForm (stops) {
+	var stopOptions = stops.map(function(stop){
+		return '<option value= "' + stop.StopID +'">' + stop.Name + '</option>'
+	});
+
+
+
+	var form = '<select id= "stopPicker" name="stops">' + 
+		'<option value="select">Select your station:</option>' + 
+		stopOptions.join('') +
+	'</select>' +
+	'<button type="submit" class="submit">Submit</button>'
+
+	$("#stop-dropdown-form").html(form)
+}
 
 //uses StopID to report bus arrival predictions
 var getTimes = function (stopID){
@@ -99,49 +69,170 @@ var getTimes = function (stopID){
 				console.log(err || res)
 			}
 			else {
-				console.log(res.body)
+				console.log(res.body);
+				timeResults(res.body.Predictions);
+				
 			}
 		})
 
 };
 
 //.results populates with time until next bus
-//.videos populates with clips of given length and -1 minute
-var searchTerm = $("#search-term").val();
-		getVideos(searchTerm);
+var timeResults = function (predictions) {
+	var dirMin = predictions.map(function(bus){
+		console.log(bus.DirectionText);
+		console.log(bus.Minutes);
+		return '<option value= "' + bus.Minutes +'">'+ bus.DirectionText + " (" + bus.Minutes + " minutes)" +'</option>'
+		
+	})
 
-function getVideos (searchTerm) {
-	
+	var nextBusesForm = '<select id= "nextBusPicker">' + 
+		'<option value="select">Select your bus:</option>' + 
+		dirMin.join('') +
+	'</select>' +
+	'<button type="submit" class="submit">Submit</button>'
+
+	$('.results').html(nextBusesForm);
+
+}
+
+
+//submit button chooses bus
+$('#bus-choice-form').on('submit', function (event) {
+	event.preventDefault();
+	var picker = $('#nextBusPicker');
+	console.log(picker.val());
+	var busMinutes = parseInt (picker.val(), 10);
+	waitTime = busMinutes;
+	foundVideos = [];
+	//NAME OF FUNCTION THAT FINDS VIDS HERE(busMinutes);
+ 	
+ 	if (busMinutes < 4) {
+ 		yTDuration = "short"
+ 	}
+ 	else if (busMinutes <= 20) {
+ 		yTDuration = "medium"
+ 	}
+ 	else {
+ 		yTDuration = "long"
+ 	}
+ 	getVideos(searchTerm, yTDuration);
+})
+
+getVideos(searchTerm, yTDuration);
+
+var searchTerm = $("#search-term").val();
+
+//finds videos based on general time length (short, medium, long)
+function getVideos (searchTerm, vidDuration, pageToken) {
+	if (!pageToken) {pageToken = ""}
+	if (!vidDuration) {vidDuration = "medium"}
 	url = 'https://www.googleapis.com/youtube/v3/search';
 	request.
 		get(url).
 		query({
 			q: searchTerm,
 			part: 'snippet',
+			type: "video",
+			maxResults: 20,
+			videoDuration: vidDuration,
+			pageToken: pageToken,
 			key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"
 		}).
 		end(function(err, res){
 			console.log(res.body)
+			var list = "";
+			var arr = [];
+			nextPageToken = res.body.nextPageToken;
+			$.each(res.body.items, function(idx, obj){
+				arr.push(obj.id.videoId);
+			})
+			list = arr.join(",");
+			betterDetails(list);
 		})
 
 }
 
-function showResults(results){
+//takes array of vids found in getVideos and finds their real length in minutes
+function betterDetails (idList) {
+	url = 'https://www.googleapis.com/youtube/v3/videos';
+	request.
+		get(url).
+		query({
+			part: 'contentDetails',
+			id: idList,
+			key: "AIzaSyCHCzbdE7gO6KRa6eAK2CfWCndd2DymORs"
+		}).
+		end(function(err, res){
+			
+			var data = res.body;
+			$.each(data.items, function(idx, obj){
+				var d = obj.contentDetails.duration
+				data.items[idx].minutes = parseInt(d.substring(2,(d.indexOf("M"))), 10)
+			})
+			console.log(data);
+			var filtered = filterVids (data.items, waitTime);
+			console.log(filtered);
+			foundVideos = foundVideos.concat(filtered);
+			if (foundVideos.length >= 6){
+				showResults();
+				console.log(foundVideos);
+			}
+			else{getVideos("", yTDuration, nextPageToken);}
+			
+		})
 
+}
+
+function filterVids (videos, minutes) {
+	var maxMinutes = minutes + 2;
+	var minMinutes = minutes - 2;
+	var arr = $.grep(videos, function(video, idx){
+		console.log(minMinutes, maxMinutes, video.minutes);
+		console.log((video.minutes <= maxMinutes && video.minutes >= minMinutes));
+		return (video.minutes <= maxMinutes && video.minutes >= minMinutes)
+	});
+	return arr;	
+}
+
+
+function showResults (){
+
+	var url0 = "https://i.ytimg.com/vi/"
+	var url1 = 	"/default.jpg"	
 	var html = "";
-	$.each(results, function(index,item){
-		var thumb = item.snippet.thumbnails.medium.url
-		html += '<p>' + thumb +'</p>';
+	$.each(foundVideos.slice(0,6), function(index,item){
+		var thumb = url0 + item.id + url1
+		
+		html += '<img src="' + thumb + '" data-vid="' + item.id + '" />';
 		console.log(thumb);
 
 	});
 
 	
 	$(".videos").html(html);
-	console.log(html);
+
 }
 
-//.more repopulates .videos with new batch of videos
+$(".videos").on("click", function (event){
+	var el = $(event.target)
+	var vid = el.attr("data-vid")
+	var url0 = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'
+	var url1 =  '" frameborder="0" allowfullscreen></iframe>'
+	var html = url0 + vid + url1;
+	$(".player").html(html);
+})
 
+//.more repopulates .videos with new batch of videos
+$(".more").on("click", function(event) {
+
+	foundVideos = foundVideos.slice(6);
+	if (foundVideos.length >= 6) {
+		showResults();
+	} 
+	else {
+		getVideos("", yTDuration, nextPageToken);
+	}
+})
 
 });
